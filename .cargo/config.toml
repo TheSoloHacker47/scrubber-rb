@@ -1,0 +1,21 @@
+# musl targets static-link the C runtime by default, and a statically linked
+# CRT cannot produce a shared library. Cargo decides whether a target supports
+# `cdylib` *before* it invokes rustc, so the `-C target-feature=-crt-static`
+# that rb_sys appends after `cargo rustc --` arrives too late:
+#
+#     error: cannot produce cdylib for `scrubber_rb` as the target
+#     `x86_64-unknown-linux-musl` does not support these crate types
+#
+# Setting it here instead means cargo sees it while probing the target, decides
+# cdylib is buildable, and the cross-compiled gem links. This also fixes source
+# builds on Alpine, which is why the file ships inside the gem.
+#
+# Note the precedence rule: a `RUSTFLAGS` environment variable *replaces* these
+# rather than merging with them. Anything that sets `RUSTFLAGS` for a musl build
+# has to include `-C target-feature=-crt-static` itself.
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=-crt-static"]
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=-crt-static"]

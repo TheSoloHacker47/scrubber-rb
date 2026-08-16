@@ -11,11 +11,14 @@ rust-version = "1.74"
 
 [lib]
 name = "scrubber_rb"
-# cdylib only. Adding "rlib" makes rustc quietly skip the cdylib when
-# cross-compiling to musl (where crt-static is on by default), so the build
-# "succeeds" and produces no .so. Nothing links against this crate as a
-# library — the unit tests live in `#[cfg(test)] mod tests` blocks, which
-# `cargo test` compiles into its own harness regardless of crate-type.
+# cdylib only. Nothing links against this crate as a library: the unit tests
+# live in `#[cfg(test)] mod tests` blocks, which `cargo test` compiles into its
+# own harness whatever the crate-type is.
+#
+# Keeping the list to exactly what is needed also keeps failures loud. With
+# "rlib" alongside it, a musl target that cannot build a cdylib silently
+# produced only the rlib and reported success, and the build failed several
+# steps later with a missing-file error that said nothing about the cause.
 crate-type = ["cdylib"]
 
 [features]

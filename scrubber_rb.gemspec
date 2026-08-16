@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir[
     "lib/**/*.rb",
+    ".cargo/config.toml",
     "ext/**/*.{rs,rb,toml,lock}",
     "Cargo.toml",
     "Cargo.lock",
