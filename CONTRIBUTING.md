@@ -88,6 +88,12 @@ gem or a source build, and a minimal input string.
 
 **Redact the input string first.** You know a good tool for that.
 
+## Releasing
+
+Maintainers only: see [docs/RELEASING.md](docs/RELEASING.md). Releases are cut by pushing a
+version tag; gems are published via RubyGems Trusted Publishing, so there is no API key stored
+in this repository.
+
 ## Security issues
 
 Don't open a public issue. See [SECURITY.md](SECURITY.md).

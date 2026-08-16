@@ -290,7 +290,8 @@ bundle exec rake ci        # everything CI runs, in CI's order
 ```
 
 New detector proposals are welcome — include public test vectors and a false-positive analysis
-in the PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
+in the PR. See [CONTRIBUTING.md](CONTRIBUTING.md), and [docs/RELEASING.md](docs/RELEASING.md)
+for how a release is cut.
 
 ## License
 
