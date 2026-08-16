@@ -107,7 +107,8 @@ That tag push is what starts the release. It will:
 2. Verify the tag matches `Scrubber::VERSION`.
 3. Cross-compile a platform gem for `x86_64-linux`, `x86_64-linux-musl`,
    `aarch64-linux`, `aarch64-linux-musl`, `x86_64-darwin`, `arm64-darwin`, and
-   attempt `x64-mingw-ucrt` (allowed to fail — Windows is best-effort).
+   `x64-mingw-ucrt` (still marked allowed-to-fail, though it has in fact built
+   cleanly on every dry run so far).
 4. Build the source gem and prove it installs and works from the `.gem` file.
 5. Wait for the `release` environment approval, if you configured reviewers.
 6. `gem push` every gem via Trusted Publishing, then cut a GitHub release with
@@ -150,3 +151,17 @@ Common first-publish failures:
 | Job never starts | The `release` environment doesn't exist, or its branch/tag rule excludes `v*`. |
 | `id-token` error | The `publish` job lost its `permissions: id-token: write`. |
 | Tag mismatch failure | `lib/scrubber/version.rb` was not bumped before tagging. Working as intended. |
+| `cannot produce cdylib ... does not support these crate types` | A musl build lost `-C target-feature=-crt-static`. The Rakefile sets it; check it still detects the target (`RUBY_TARGET`). |
+| `is missing native libraries for: 3.4` | rake-compiler matches cross-rubies by **exact patch version**, and the resolver step drifted from what the image holds. Read the resolver's `resolved:` line against the image's actual `ruby-*` directories. |
+| A build image behaving as if it predates a Ruby release | The image is cached under `$HOME/.cache/rb-sys-<version>`. Bump `cache-version:` on the `cross-gem` step to evict it. |
+
+### What the dry run is for
+
+The first nine dry runs of this workflow found, in order: a musl linker
+configuration that silently produced no library at all; gems that shipped with
+no Ruby 3.4 support and would have raised `LoadError` on every 3.4 install; and
+a build image cached from before Ruby 3.4 existed. Every one of those would have
+been a burned version number, because a published gem version cannot be
+replaced.
+
+Run the dry run. It is free and the version number is not.
