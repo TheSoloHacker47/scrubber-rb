@@ -59,6 +59,31 @@ jobs:
           fi
           echo "tag $GITHUB_REF_NAME matches Scrubber::VERSION $version"
 
+  # TEMPORARY probe: ask the build image which cross-rubies it actually has,
+  # instead of guessing version strings one CI run at a time. Delete once the
+  # version list in cross-gem is settled.
+  probe:
+    name: Probe cross-ruby inventory
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - run: gem install rb_sys --no-document
+      - name: What does the image contain?
+        run: |
+          rb-sys-dock --platform x86_64-linux --directory . -- '
+            echo "=== rake-compiler dirs ===";
+            ls -1 /usr/local/rake-compiler/ruby/ 2>/dev/null || true;
+            for d in /usr/local/rake-compiler/ruby/*/; do echo "[$d]"; ls -1 "$d"; done 2>/dev/null || true;
+            echo "=== config.yml keys ===";
+            cat /usr/local/rake-compiler/config.yml 2>/dev/null | head -40;
+            cat ~/.rake-compiler/config.yml 2>/dev/null | head -40;
+            echo "=== HOME ==="; echo "$HOME"; ls -la "$HOME" | head -20
+          ' || true
+
   cross-gem:
     name: ${{ matrix.platform }}
     needs: verify
