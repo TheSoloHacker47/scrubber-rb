@@ -59,31 +59,6 @@ jobs:
           fi
           echo "tag $GITHUB_REF_NAME matches Scrubber::VERSION $version"
 
-  # TEMPORARY probe: ask the build image which cross-rubies it actually has,
-  # instead of guessing version strings one CI run at a time. Delete once the
-  # version list in cross-gem is settled.
-  probe:
-    name: Probe cross-ruby inventory
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.3"
-      - run: gem install rb_sys --no-document
-      - name: What does the image contain?
-        run: |
-          rb-sys-dock --platform x86_64-linux --directory . -- '
-            echo "=== rake-compiler dirs ===";
-            ls -1 /usr/local/rake-compiler/ruby/ 2>/dev/null || true;
-            for d in /usr/local/rake-compiler/ruby/*/; do echo "[$d]"; ls -1 "$d"; done 2>/dev/null || true;
-            echo "=== config.yml keys ===";
-            cat /usr/local/rake-compiler/config.yml 2>/dev/null | head -40;
-            cat ~/.rake-compiler/config.yml 2>/dev/null | head -40;
-            echo "=== HOME ==="; echo "$HOME"; ls -la "$HOME" | head -20
-          ' || true
-
   cross-gem:
     name: ${{ matrix.platform }}
     needs: verify
@@ -113,26 +88,38 @@ jobs:
           cargo-cache: true
           cache-version: v1
 
-      # This list needs both forms on purpose.
+      # rake-compiler matches cross-rubies by exact patch version: the image
+      # holds ruby-3.4.9, and asking for "3.4" (which rb-sys-dock expands to
+      # "3.4.0") matches nothing, logs one line, skips that ABI and still exits
+      # 0. Hard-coding "3.4.9" instead just moves the staleness into this file.
       #
-      # Omitting it entirely is not an option: the image's own default includes
-      # Ruby 2.6 and 2.7, which this crate cannot build against, and the job
-      # dies there. But naming a bare "3.4" is not enough either — rb-sys-dock
-      # expands that to "3.4.0", the image has no cross-ruby by that name, and
-      # rake-compiler logs one line, skips the ABI and still exits 0. That
-      # shipped gems with .so files for 3.1/3.2/3.3 only, which would have
-      # raised LoadError on every Ruby 3.4 install.
-      #
-      # The older ABIs are present under X.Y.0 names and 3.4 under its real
-      # patch version, so both spellings are listed; rake-compiler builds
-      # whichever exist and ignores the rest. The check below is what actually
-      # guarantees the result, so if the image's naming changes again this
-      # fails loudly instead of shipping a gem with a hole in it.
+      # rake-compiler-dock is the source the images are built from, so ask it.
+      # Capped below 4.0 to match required_ruby_version; 3.0 is excluded for the
+      # same reason.
+      - name: Resolve cross-ruby versions from rake-compiler-dock
+        id: rubies
+        run: |
+          set -euo pipefail
+          gem install rb_sys --no-document
+          versions="$(ruby -e '
+            require "rake_compiler_dock"
+            wanted = RakeCompilerDock.cross_rubies.values.select do |v|
+              gv = Gem::Version.new(v)
+              gv >= Gem::Version.new("3.1") && gv < Gem::Version.new("4.0")
+            end
+            puts wanted.sort_by { |v| Gem::Version.new(v) }.join(",")
+          ')"
+          echo "resolved: $versions"
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
         with:
           platform: ${{ matrix.platform }}
-          ruby-versions: "3.1,3.2,3.3,3.4,3.4.9"
+          ruby-versions: ${{ steps.rubies.outputs.versions }}
+          # Bumped to evict a cached build image that predated Ruby 3.4 and was
+          # being restored in place of the current one.
+          cache-version: v1
 
       # Upload before verifying, so that a gem which fails the check below is
       # still downloadable and can be inspected instead of rebuilt.
