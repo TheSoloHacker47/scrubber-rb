@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "bundler/gem_tasks"
-require "rspec/core/rake_task"
 require "rb_sys/extensiontask"
 
 GEMSPEC = Gem::Specification.load("scrubber_rb.gemspec")
@@ -11,7 +10,16 @@ RbSys::ExtensionTask.new("scrubber_rb", GEMSPEC) do |ext|
   ext.cross_compile = true
 end
 
-RSpec::Core::RakeTask.new(:spec)
+# Guarded: the cross-compile containers install only what the build needs, so
+# requiring RSpec unconditionally turns any build failure into a LoadError that
+# hides the real one.
+begin
+  require "rspec/core/rake_task"
+  RSpec::Core::RakeTask.new(:spec)
+rescue LoadError
+  desc "rspec is not available in this bundle"
+  task(:spec) { abort "rspec is not installed; run `bundle install`" }
+end
 
 begin
   require "rubocop/rake_task"
