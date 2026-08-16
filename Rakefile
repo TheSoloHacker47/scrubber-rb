@@ -13,10 +13,11 @@ require "rb_sys/extensiontask"
 # decides whether a target supports a crate type while probing that target,
 # before rustc is invoked, so anything appended after `cargo rustc --` (which
 # is what rb_sys does) arrives too late to matter. RUSTFLAGS also outranks
-# `target.*.rustflags` from .cargo/config.toml, so if something else in the
-# build container sets it, the config file is ignored — hence setting it here,
-# where rake spawns make which spawns cargo, and the environment is inherited
-# the whole way down.
+# `target.*.rustflags` from .cargo/config.toml. The cross-compile container
+# turned out to have RUSTFLAGS set but *empty*, which still wins that
+# precedence contest — so the config file was silently ignored and the flag
+# never arrived. Setting it here works because rake spawns make which spawns
+# cargo, and the environment is inherited the whole way down.
 #
 # .cargo/config.toml stays for `gem install` on Alpine, which never runs this
 # Rakefile and where nothing sets RUSTFLAGS.
