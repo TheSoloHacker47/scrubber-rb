@@ -28,7 +28,7 @@ if musl
   crt = "-C target-feature=-crt-static"
   before = ENV["RUSTFLAGS"].to_s
   ENV["RUSTFLAGS"] = before.include?(crt) ? before : "#{crt} #{before}".strip
-  warn "scrubber_rb: musl target; RUSTFLAGS was #{before.inspect}, now #{ENV['RUSTFLAGS'].inspect}"
+  warn "scrubber_rb: musl target; RUSTFLAGS was #{before.inspect}, now #{ENV["RUSTFLAGS"].inspect}"
 end
 
 GEMSPEC = Gem::Specification.load("scrubber_rb.gemspec")
