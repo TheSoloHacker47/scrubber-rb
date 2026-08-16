@@ -158,7 +158,7 @@ jobs:
       - name: List what is about to be published
         run: ls -lh pkg/
 
-      - uses: rubygems/configure-rubygems-credentials@main
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
 
       - name: Push every gem
         run: |
