@@ -88,16 +88,26 @@ jobs:
           cargo-cache: true
           cache-version: v1
 
-      # No `ruby-versions:` on purpose. Naming them explicitly means writing
-      # "3.4", which rb-sys-dock normalises to "3.4.0" — and the image ships
-      # 3.4.9, so rake-compiler found no config for it, skipped that ABI, and
-      # still exited 0. The gem shipped with .so files for 3.1/3.2/3.3 only and
-      # would have raised LoadError on every Ruby 3.4 install. The default
-      # tracks whatever cross-rubies the image actually contains.
+      # This list needs both forms on purpose.
+      #
+      # Omitting it entirely is not an option: the image's own default includes
+      # Ruby 2.6 and 2.7, which this crate cannot build against, and the job
+      # dies there. But naming a bare "3.4" is not enough either — rb-sys-dock
+      # expands that to "3.4.0", the image has no cross-ruby by that name, and
+      # rake-compiler logs one line, skips the ABI and still exits 0. That
+      # shipped gems with .so files for 3.1/3.2/3.3 only, which would have
+      # raised LoadError on every Ruby 3.4 install.
+      #
+      # The older ABIs are present under X.Y.0 names and 3.4 under its real
+      # patch version, so both spellings are listed; rake-compiler builds
+      # whichever exist and ignores the rest. The check below is what actually
+      # guarantees the result, so if the image's naming changes again this
+      # fails loudly instead of shipping a gem with a hole in it.
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
         with:
           platform: ${{ matrix.platform }}
+          ruby-versions: "3.1,3.2,3.3,3.4,3.4.9"
 
       # ...and verify it, because the failure mode above was silent.
       - name: Every supported ABI must be in the gem
