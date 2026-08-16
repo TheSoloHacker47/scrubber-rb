@@ -1,0 +1,64 @@
+name: New detector proposal
+description: Propose a new data type for scrubber_rb to detect
+labels: [detector, enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md#proposing-a-new-detector) for what a
+        detector needs before it can ship. The short version: public test vectors, a
+        false-positive analysis, and a checksum if the format has one.
+
+  - type: input
+    id: name
+    attributes:
+      label: Proposed detector key
+      placeholder: ":nhs_number"
+    validations:
+      required: true
+
+  - type: textarea
+    id: format
+    attributes:
+      label: Format specification
+      description: What is the structure, and where is it documented? Link the spec.
+    validations:
+      required: true
+
+  - type: textarea
+    id: vectors
+    attributes:
+      label: Public test vectors
+      description: >
+        Values the issuer publishes for testing, or a rule for generating valid ones. Never a
+        real identifier belonging to a real person.
+    validations:
+      required: true
+
+  - type: textarea
+    id: checksum
+    attributes:
+      label: Checksum or validity rule
+      description: >
+        Does the format have a check digit, a range restriction, or a registry we can validate
+        against? If not, what stops this from firing on ordinary numbers?
+    validations:
+      required: true
+
+  - type: textarea
+    id: false_positives
+    attributes:
+      label: False-positive analysis
+      description: What else in a normal production log has this shape?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: pack
+    attributes:
+      label: Should this be on by default?
+      options:
+        - "Default — relevant to most users worldwide"
+        - "Opt-in region pack — relevant to one country or sector"
+    validations:
+      required: true

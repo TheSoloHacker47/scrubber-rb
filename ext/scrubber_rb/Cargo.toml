@@ -1,0 +1,33 @@
+[package]
+name = "scrubber_rb"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nikhil Nelson <thesolohacker47@gmail.com>"]
+license = "MIT"
+description = "Rust core for the scrubber_rb Ruby gem: fast PII and secret redaction"
+repository = "https://github.com/TheSoloHacker47/scrubber-rb"
+publish = false
+rust-version = "1.74"
+
+[lib]
+name = "scrubber_rb"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# Link libruby into the built artifacts so `cargo test` can run the pure-Rust
+# unit tests from a plain executable. The shipped extension never enables this:
+# it is loaded *into* a Ruby process, which already has those symbols.
+link-ruby = ["rb-sys/link-ruby"]
+
+[dependencies]
+magnus = "0.7"
+rb-sys = "0.9"
+regex = "1.10"
+aho-corasick = "1.1"
+sha2 = "0.10"
+
+[build-dependencies]
+rb-sys-env = "0.1"
+
+[dev-dependencies]
+proptest = "1"

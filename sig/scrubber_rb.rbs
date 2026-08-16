@@ -1,0 +1,150 @@
+# Type signatures for scrubber_rb.
+
+module Scrubber
+  VERSION: String
+
+  # Detector keys, sourced from the Rust registry at load time.
+  DEFAULTS: Array[Symbol]
+  INDIA: Array[Symbol]
+  ALL: Array[Symbol]
+
+  type detector = Symbol | String
+  type replacement = :label | :mask | :hash | :remove
+  type custom_patterns = Hash[Symbol | String, Regexp]
+
+  class Error < StandardError
+  end
+
+  # Raised when a detector key is not in the registry.
+  class UnknownDetectorError < Error
+  end
+
+  # Raised at construction time when a custom Regexp needs backtracking.
+  class UnsupportedPatternError < Error
+  end
+
+  # Raised for an invalid replacement strategy or malformed options.
+  class ConfigurationError < Error
+  end
+
+  # Raised when a panic is caught at the FFI boundary. Always a bug.
+  class InternalError < Error
+  end
+
+  class Match < Struct[untyped]
+    attr_accessor type: Symbol
+    attr_accessor begin: Integer
+    attr_accessor end: Integer
+    attr_accessor preview: String
+
+    def to_range: () -> Range[Integer]
+    def length: () -> Integer
+  end
+
+  # The compiled engine. Frozen; safe to share across threads.
+  class Instance
+    REPLACEMENTS: Array[Symbol]
+    CHUNK_SIZE: Integer
+    CARRY_SIZE: Integer
+
+    attr_reader detectors: Array[Symbol]
+    attr_reader custom: custom_patterns
+    attr_reader replacement: Symbol
+    attr_reader hash_salt: String?
+
+    def initialize: (
+      ?detectors: Array[detector],
+      ?custom: custom_patterns,
+      ?replacement: replacement | String,
+      ?hash_salt: String?
+    ) -> void
+
+    def scrub: (String | _ToStr) -> String
+    def scrub!: (String) -> String
+    def detect: (String | _ToStr) -> Array[Match]
+    def match?: (String | _ToStr) -> bool
+    def scrub_file: (String | ::Pathname, String | ::Pathname, ?chunk_size: Integer) -> Integer
+    def rule_count: () -> Integer
+    def cache_key: () -> Array[untyped]
+
+    def self.cache_key: (
+      detectors: Array[detector],
+      custom: custom_patterns,
+      replacement: replacement | String,
+      hash_salt: String?
+    ) -> Array[untyped]
+  end
+
+  # Wraps a Logger formatter and redacts its output.
+  class LogFormatter
+    attr_reader scrubber: Instance
+
+    def initialize: (?untyped formatter, ?scrubber: Instance?, **untyped) -> void
+    def call: (String severity, Time time, untyped progname, untyped msg) -> untyped
+    def self.default_formatter: () -> untyped
+  end
+
+  # Rack middleware. Non-destructive: publishes redacted copies at env["scrubber.*"].
+  class Middleware
+    QUERY_STRING: String
+    ENV_QUERY: String
+    ENV_PARAMS: String
+    ENV_INSTANCE: String
+
+    attr_reader scrubber: Instance
+
+    def initialize: (
+      untyped app,
+      ?scrubber: Instance?,
+      ?scrub_exceptions: bool,
+      **untyped
+    ) -> void
+    def call: (Hash[String, untyped] env) -> untyped
+  end
+
+  # Redacts prompts before they reach a model API.
+  class LLMGuard
+    CONTENT_KEYS: Array[String]
+
+    attr_reader scrubber: Instance
+
+    def initialize: (?scrubber: Instance?, ?replacement: replacement, **untyped) -> void
+    def call: (untyped) -> untyped
+    alias scrub call
+    def to_proc: () -> Proc
+    def findings: (untyped) -> Array[Match]
+  end
+
+  # The native extension. Not a public API; use Scrubber::Instance.
+  class Native
+    def self.new: (
+      Array[String] detectors,
+      Array[[String, String, Integer]] customs,
+      String replacement,
+      String? hash_salt
+    ) -> Native
+
+    def self.default_detectors: () -> Array[String]
+    def self.india_detectors: () -> Array[String]
+    def self.all_detectors: () -> Array[String]
+
+    def scrub: (String) -> String?
+    def detect: (String, bool) -> Array[[String, Integer, Integer, String]]
+    def rule_count: () -> Integer
+  end
+
+  def self.new: (
+    ?detectors: Array[detector],
+    ?custom: custom_patterns,
+    ?replacement: replacement | String,
+    ?hash_salt: String?
+  ) -> Instance
+
+  def self.scrub: (String | _ToStr, **untyped) -> String
+  def self.scrub!: (String, **untyped) -> String
+  def self.detect: (String | _ToStr, **untyped) -> Array[Match]
+  def self.match?: (String | _ToStr, **untyped) -> bool
+  def self.scrub_file: (String | ::Pathname, String | ::Pathname, **untyped) -> Integer
+  def self.engine: (**untyped) -> Instance
+  def self.reset!: () -> nil
+end

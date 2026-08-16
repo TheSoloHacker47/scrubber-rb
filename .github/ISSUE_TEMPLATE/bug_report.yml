@@ -1,0 +1,74 @@
+name: Bug report
+description: Something is redacted that should not be, or not redacted when it should be
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before you paste anything:** if your example contains a real credential or real
+        personal data, redact it first. You are, after all, holding a tool for that.
+
+        If this is a *security* issue — a credential surviving redaction, a crash, a
+        resource-exhaustion path — please use
+        [private reporting](https://github.com/TheSoloHacker47/scrubber-rb/security/advisories/new)
+        instead of this form.
+
+  - type: input
+    id: version
+    attributes:
+      label: Scrubber::VERSION
+      description: "`ruby -e 'require \"scrubber_rb\"; puts Scrubber::VERSION'`"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did it install?
+      description: "`gem list scrubber_rb` shows the platform in parentheses."
+      options:
+        - Precompiled platform gem (x86_64-linux, arm64-darwin, ...)
+        - Source gem, built locally with a Rust toolchain
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: Ruby and platform
+      description: "`ruby -v`"
+      placeholder: "ruby 3.3.0 (2023-12-25) [arm64-darwin24]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: input
+    attributes:
+      label: Minimal input string
+      description: >
+        The smallest string that reproduces it. **Redact it first** — replace the real value
+        with a same-shaped fake one, and check that the fake still reproduces the bug.
+      render: ruby
+      placeholder: |
+        Scrubber.scrub("order 4111 1111 1111 1111")
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected vs what you got
+      placeholder: |
+        expected: "order [CREDIT_CARD]"
+        got:      "order 4111 1111 1111 1111"
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: The detectors, replacement and custom patterns you were using, if not the defaults.
+      render: ruby

@@ -1,0 +1,4 @@
+203.0.113.42 - - [16/Aug/2026:09:12:33 +0000] "GET /users?email=nik@example.com&password=hunter2 HTTP/1.1" 200 1043 "-" "Mozilla/5.0"
+198.51.100.7 - admin [16/Aug/2026:09:12:34 +0000] "POST /api/v1/charge HTTP/1.1" 201 88 "-" "curl/8.4.0"
+2001:0db8:85a3:0000:0000:8a2e:0370:7334 - - [16/Aug/2026:09:12:35 +0000] "GET /health HTTP/1.1" 200 2 "-" "kube-probe/1.29"
+203.0.113.42 - - [16/Aug/2026:09:12:36 +0000] "GET /callback?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U HTTP/1.1" 302 0 "-" "Mozilla/5.0"

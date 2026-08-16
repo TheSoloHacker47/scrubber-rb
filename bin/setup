@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "$(dirname "$0")/.."
+
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "Rust toolchain not found."
+  echo "Install it with:"
+  echo
+  echo "    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+  echo
+  echo "then re-run bin/setup. (Installing a toolchain silently on your behalf"
+  echo "is not something a setup script should do without asking.)"
+  exit 1
+fi
+
+echo "==> bundle install"
+bundle install
+
+echo "==> rake compile"
+bundle exec rake compile
+
+echo
+echo "Ready. Useful commands:"
+echo "  bundle exec rake             # compile + spec"
+echo "  bundle exec rake ci          # everything CI runs"
+echo "  bundle exec rake benchmark   # the README table (generates a 100MB corpus)"
+echo "  bin/console                  # irb with the gem loaded"

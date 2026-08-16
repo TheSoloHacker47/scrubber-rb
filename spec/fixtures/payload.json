@@ -1,0 +1,17 @@
+{
+  "customer": {
+    "email": "nik@example.com",
+    "phone": "+14155552671",
+    "vpa": "nik@ybl",
+    "pan": "ABCPE1234F"
+  },
+  "payment": {
+    "card_number": "4012-8888-8888-1881",
+    "iban": "GB82 WEST 1234 5698 7654 32"
+  },
+  "meta": {
+    "request_ip": "198.51.100.7",
+    "api_key": "__STRIPE_SECRET_KEY__",
+    "trace_id": "9f86d081884c7d659a2feaa0c55ad015"
+  }
+}

@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly ruby-head canary, so a breaking change upstream shows up here
+    # before it shows up in someone's Gemfile.
+    - cron: "17 5 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets --features link-ruby -- -D warnings
+      - run: cargo test --features link-ruby
+
+  spec:
+    name: Ruby ${{ matrix.ruby }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ["3.1", "3.2", "3.3", "3.4"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.ruby }}
+
+      - run: bundle exec rake compile
+      - run: bundle exec rake spec
+
+  lint:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - run: bundle exec rubocop --parallel
+
+  perf:
+    name: Performance floor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - run: bundle exec rake compile
+
+      # The local target is 10x. CI runners are shared and noisy, so the gate
+      # is a regression floor at 5x rather than a restatement of the claim.
+      - name: Assert >= 5x the pure-Ruby reference
+        run: bundle exec rake benchmark:gate
+        env:
+          PERF_FLOOR: "5"
+          SIZE_MB: "10"
+
+  install:
+    name: Source-gem install with no Rust in PATH
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Proves the packaged gem is self-contained: it builds and loads from the
+      # .gem file, not from the working tree.
+      - name: Build and install the source gem
+        run: |
+          bundle exec rake build
+          gem install pkg/scrubber_rb-*.gem
+      - name: Smoke-test outside the repo
+        run: |
+          cd /tmp
+          ruby -e 'require "scrubber_rb"; out = Scrubber.scrub("a@b.com"); abort("got #{out}") unless out == "[EMAIL]"; puts "ok #{Scrubber::VERSION}"'
+
+  head:
+    name: ruby-head canary
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: head
+          bundler-cache: true
+      - uses: dtolnay/rust-toolchain@stable
+      - run: bundle exec rake compile
+      - run: bundle exec rake spec

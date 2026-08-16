@@ -1,0 +1,7 @@
+DATABASE_URL=postgres://app:hunter2@db.internal:5432/prod
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+GITHUB_TOKEN=ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+STRIPE_SECRET_KEY=__STRIPE_SECRET_KEY__
+SUPPORT_EMAIL=support@example.com
+LOG_LEVEL=debug

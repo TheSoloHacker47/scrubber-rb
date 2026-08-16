@@ -1,0 +1,5 @@
+I, [2026-08-16T09:12:33.123456 #4211]  INFO -- : Started POST "/orders" for 203.0.113.42 at 2026-08-16 09:12:33 +0000
+I, [2026-08-16T09:12:33.124000 #4211]  INFO -- : Parameters: {"order"=>{"email"=>"nik@example.com", "card_number"=>"4111 1111 1111 1111", "phone"=>"+14155552671"}}
+D, [2026-08-16T09:12:33.130000 #4211] DEBUG -- : Order Create (1.2ms) INSERT INTO "orders" ("email") VALUES ('nik@example.com')
+E, [2026-08-16T09:12:33.200000 #4211] ERROR -- : PG::ConnectionBad: could not connect to postgres://app:hunter2@db.internal:5432/prod
+I, [2026-08-16T09:12:33.210000 #4211]  INFO -- : Completed 500 Internal Server Error in 87ms

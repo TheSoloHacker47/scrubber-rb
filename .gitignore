@@ -1,0 +1,16 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/target/
+/lib/scrubber_rb/*.so
+/lib/scrubber_rb/*.bundle
+/lib/scrubber_rb/*.dll
+/benchmark/corpus/*.log
+/.rspec_status
+Gemfile.lock
+.DS_Store

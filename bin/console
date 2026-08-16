@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "scrubber_rb"
+require "irb"
+
+puts "scrubber_rb #{Scrubber::VERSION} loaded. Try: Scrubber.scrub('mail nik@example.com')"
+IRB.start(__FILE__)

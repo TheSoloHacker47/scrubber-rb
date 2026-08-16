@@ -1,0 +1,103 @@
+plugins:
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "tmp/**/*"
+    - "target/**/*"
+    - "vendor/**/*"
+    - "benchmark/corpus/*.log"
+
+# The detector patterns and the benchmark reference are inherently long tables.
+Layout/LineLength:
+  Max: 110
+  Exclude:
+    - "benchmark/pure_ruby_reference.rb"
+    - "benchmark/corpus/generate.rb"
+    - "spec/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "benchmark/**/*"
+    - "*.gemspec"
+
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/ModuleLength:
+  Exclude:
+    - "benchmark/**/*"
+
+Metrics/ClassLength:
+  Max: 150
+
+Style/Documentation:
+  Enabled: true
+
+# The bundler gem template, and every file here, uses double quotes.
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+# `Scrubber.new` intentionally returns a Scrubber::Instance.
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Naming/PredicateMethod:
+  Exclude:
+    - "benchmark/**/*"
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/NestedGroups:
+  Max: 4
+
+# Fixture-driven specs describe behaviour, not a single class.
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+# Benchmark scripts are throwaway CLI output; positional format tokens read
+# better than annotated ones in a column-aligned table.
+Style/FormatStringToken:
+  Exclude:
+    - "benchmark/**/*"
+
+# The reference implementation is one big rule table plus one dispatch method.
+# Splitting it up would make it harder to check against the Rust registry,
+# which is the only thing it exists for.
+Metrics/AbcSize:
+  Max: 22
+  Exclude:
+    - "benchmark/pure_ruby_reference.rb"
+    - "benchmark/corpus/generate.rb"
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - "benchmark/pure_ruby_reference.rb"
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - "benchmark/pure_ruby_reference.rb"
+
+# `around` + mktmpdir is the idiomatic way to get a temp directory per example.
+RSpec/InstanceVariable:
+  Exclude:
+    - "spec/scrub_file_spec.rb"
+
+# `agree_on` is the expectation.
+RSpec/NoExpectationExample:
+  AllowedPatterns:
+    - "^agree_on"
