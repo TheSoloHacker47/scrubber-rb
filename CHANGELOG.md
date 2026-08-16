@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-16
+
+Documentation only. The native extension is byte-for-byte identical to 0.1.0 —
+if you are already on 0.1.0 there is no functional reason to upgrade.
+
+### Added
+
+- A `vs logstop` section in the README with a scope-matched benchmark
+  (`rake benchmark:logstop`). `scrubber_rb` is restricted to logstop's exact
+  detector set before anything is timed: 153.6 MB/s vs 9.1 MB/s over the 100MB
+  corpus, or 112.9 vs 8.7 with `ip` and `mac` enabled on both.
+- A table of where the two disagree about *what* to redact, in both directions.
+  logstop's card pattern is sixteen digits with no checksum, so it redacts
+  numbers that fail Luhn and misses 15-digit Amex and 19-digit Visa; but it
+  matches percent-encoded values inline and this gem does not.
+
+### Documented
+
+- **Percent-encoded input is not decoded.** `Scrubber.scrub("e=nik%40example.com")`
+  finds no email, because `%40` is not `@`. Decode before scrubbing;
+  `Scrubber::Middleware` already does this for query strings. This behaviour has
+  not changed — it was simply never written down, and it is the kind of gap that
+  should be on the tin rather than discovered in production.
+
 ## [0.1.0] - 2026-08-16
 
 First release.
@@ -55,5 +79,6 @@ First release.
   `aarch64-linux-musl`, `x86_64-darwin`, `arm64-darwin`, plus a best-effort
   `x64-mingw-ucrt` and the source gem.
 
-[Unreleased]: https://github.com/TheSoloHacker47/scrubber-rb/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/TheSoloHacker47/scrubber-rb/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/TheSoloHacker47/scrubber-rb/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/TheSoloHacker47/scrubber-rb/releases/tag/v0.1.0
