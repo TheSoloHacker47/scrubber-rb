@@ -1,8 +1,14 @@
-# AGENT BRIEF — Build the `scrubber_rb` gem (Rust-cored PII & secret redaction for Ruby)
+# The original design brief
 
-> **Audience:** an AI coding agent (Claude Code / Cursor). Follow this document top to bottom.
-> **Owner:** Nikhil Nelson (@SoloHacker47). Ask before changing the public API or detector list.
-> **License:** MIT. **Stack:** Ruby gem with a Rust native extension (magnus + rb-sys).
+> **Historical document.** This is the brief `scrubber_rb` was built from, written
+> before any code existed and preserved unedited. It is published because the design
+> work happened here, not in the implementation.
+>
+> **It is not documentation.** For what the gem does today, including the current
+> detector list and public API, read the [README](../README.md) and
+> [CHANGELOG](../CHANGELOG.md). Where the two disagree, they are right and this is old.
+
+**License:** MIT. **Stack:** Ruby gem with a Rust native extension (magnus + rb-sys).
 
 ---
 
@@ -32,16 +38,14 @@ chart IS the launch post.
 
 ---
 
-## 1. Naming — verify before anything else
+## 1. Naming
 
-Primary name: **`scrubber_rb`**, namespace `Scrubber`.
+**`scrubber_rb`**, namespace `Scrubber`, which is what shipped.
 
-Verify: `gem search ^scrubber_rb$ --remote` empty AND https://rubygems.org/gems/scrubber_rb is
-404 AND the bare `scrubber` namespace doesn't create confusion with an existing popular gem
-(if a well-known `scrubber` gem exists, prefer a fallback to avoid constant collisions).
-
-Fallbacks in order: `redactly` (namespace `Redactly`), `pii_shield`, `scrub_rs`.
-If renamed, do a global rename across this spec and the README.
+The name had to clear two checks before anything was built: that it was free on
+RubyGems, and that the bare `Scrubber` namespace would not collide confusingly with an
+existing popular gem. A namespace clash is cheap to avoid up front and expensive to fix
+after release, which is why this section came first.
 
 ---
 
